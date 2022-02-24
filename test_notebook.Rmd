@@ -1,0 +1,34 @@
+---
+title: "test_notebook"
+author: "sunny"
+date: '2022-02-24'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Trying something
+
+#### Way of finding initial lambda in 2c
+
+```{r}
+clouds_data = read.table("clouds.txt",header=TRUE)
+head(clouds_data)
+```
+
+```{r}
+seed_data = clouds_data$seeded
+a = var(seed_data)
+b = mean(seed_data)
+lambda_hat = 1/sqrt(a)
+lambda_hat2 = 1/b
+print(paste("Variation of data : ",round(a,3)))
+print(paste("Mean of data : ",round(b,3)))
+print(paste("Lamba Hat of data (var): ", round(lambda_hat,3)))
+print(paste("Lamba Hat of data (mean): ", round(lambda_hat2,3)))
+    
+```
+
+Using formula, E(X) = 1/Lambda or Var(X) = 1/(Lambda)\^2
