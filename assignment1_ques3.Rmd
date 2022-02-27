@@ -27,7 +27,7 @@ To check for normality of data distribution across the 3 variables in each recor
 
 Visually, we plot the histogram and qq-plot for each variable to inspect for normality.
 
-Mathematically, we can go through shapiro-wilk normality test to see if the
+Mathematically, we can go through Shapiro-Wilk normality test to see if the
 
 #### Histograms
 
@@ -46,28 +46,99 @@ Looking visually at histograms, the data doesn't look to be distributed normally
 ```{r}
 par(mfrow=c(1,3))
 qqnorm(Isofluorane,main="QQ-Plot of Isofluorane data")
+qqline(Isofluorane)
 qqnorm(Halothane,main="QQ-Plot of Halothane data")
+qqline(Halothane)
 qqnorm(Cyclopropane,main="QQ-Plot of Cyclopropane data")
+qqline(Cyclopropane)
 ```
 
 QQ-Plots reveal a better picture of the normality and looking at it, Halothane and Cyclopropane data look promising candidates for normality.
 
-To confirm our inference, lets go through shapiro-wilk normality test.
+To confirm our inference, lets go through Shapiro-Wilk normality test.
 
 #### Shapiro-Wilk Normality Test
 
 ```{r}
-shapiro.test(Isofluorane)
-shapiro.test(Halothane)
-shapiro.test(Cyclopropane)
+print(shapiro.test(Isofluorane))
+print(shapiro.test(Halothane))
+print(shapiro.test(Cyclopropane))
 ```
 
-Halothane and Cyclopropane data have p-values \> 0.05, which means we can reject the Null Hypothesis H0 that data is not normally distributed. On the other hand, Isofluorane data isn't normally distributed as p-value \<= 0.05.
+Halothane and Cyclopropane data have p-values \> 0.05, which means we can accept the Null Hypothesis $H_0$ that data is normally distributed. On the other hand, Isofluorane data isn't normally distributed as p-value \<= 0.05.
 
 #### Final Answer
 
-On visual inspection, all 3 data-sets didnt look visually normal using histogram inspection, but halothane and cyclopropane had somewhat straight qq-plots (variation due to low number of observations).
+On visual inspection, all 3 variables in dataset didn't look visually normal using histogram inspection, but Halothane and Cyclopropane had somewhat straight qq-plots (variation due to low number of observations).
 
-On closer inspection through shapiro-wilk test, Isofluorane proved to be not normally distributed at all but Halothane and Cyclopropane concentrations were indeed normally distributed through the datasets.
+On closer inspection through Shapiro-Wilk Normality test, Isofluorane proved to be not normally distributed at all but Halothane and Cyclopropane concentrations were indeed normally distributed through the dataset.
 
 ### Question 3-B
+
+To check correlation between 2 normally distributed variables, we can apply Pearson's test for correlation. From 3-A, we realise that variable Isofluorane is not normally distributed. Therefore, we cannot use this test to check for its correlation with Halothane.
+
+In this case, we will use Spearman's rank test for correlation.
+
+```{r}
+
+print(cor.test(Isofluorane,Halothane,method=c("spearman")))
+```
+
+Since obtained $\rho \neq 0$ , there might be some degree of positive correlation between both variables in our data. But p-value of 0.54 indicates that Null-Hypothesis is significantly supported, hence true $\rho = 0$ and it indicates no correlation between values of Isofluorane and Halothane. We need to note that p-value might not be correct due to presence of ties (same-values) in a fairly small sample size (10).
+
+In 3-A, using Shapiro-Wilk Normality Test, it has already been concluded that variable Isofluorane doesn't come from a normal distribution while variable Halothane comes from a normal distribution.
+
+```{r}
+print(ks.test(Isofluorane,Halothane))
+```
+
+Using Kolmogorov-Smirnov Tests, we get a P-value of 0.76 indicating that 2 variable distributions might be similar. Again, due to low sample size and presence of ties, the calculated value of p-value can have some inaccuracies.
+
+```{r}
+print(paste("Length of datasamples : ",length(Isofluorane),length(Halothane),length(Cyclopropane)))
+```
+
+Since size of data sample is small (10\<30) and from 3-A we know 1st column does not follow normal distribution, we can say that Permutation tests are applicable in this case.
+
+### Question 3-C
+
+Performing ANOVA test,
+
+```{r}
+#Creating DataFrame
+
+df = data.frame(Concentration=as.vector(as.matrix(dogs_data)),An_Type=factor(rep(1:3,each=10)))
+
+#Creating Linear Model
+mod_1 = lm(Concentration ~ An_Type, data=df)
+
+#Performing ANOVA Test
+anova(mod_1)
+
+#Printing output parameters of our Linear Model
+summary(mod_1)
+```
+
+Looking at the p-value from the summary of the linear model and ANOVA test table, P-value = 0.011 \< 0.05, we can definitely say that One Way ANOVA test determines that the type of drug has a significant effect on the concentration of plasma epinephrine.
+
+Using the summary of the model, the estimated concentration of each type of drugs is :
+
+Isofluorane : 43.40%
+
+Halothane : 3.50 % (The way the linear model adjusted itself, this parameter has p-value\> 0.81. This means the estimator considers its effect insignificant on the concentration of plasma.)
+
+Cyclopropane : 41.90%
+
+### Question 3-D
+
+Performing the Kruskal-Wallis test :
+
+```{r}
+Concentration = df$Concentration
+Anesthesia_Type = df$An_Type
+kruskal.test(Concentration ~ Anesthesia_Type, data = df)
+```
+
+The p-value given using Kruskal-Wallis Test comes out to be 0.059 (\> 0.05). Hence the Null Hypothesis of this test is accepted, meaning it considers the effect of type of drug insignificant on the concentration of plasma epinephrine in the blood.
+
+This is in contrast with the inference deduced using ANOVA test, although not by a far off margin since the p-value is very close 0.05 in case of Kruskal-Wallis test as well. This might be due to the nature of distribution as Kruskal-Wallis is a rank-based test, while ANOVA uses the nature of distribution such as Mean to compute the effect of the independent variable on the dependent variable. In our case, the first variable (Isofluorane) doesn't come from a standard normal distribution, while the other 2 variables do. Hence, Kruskal-Wallis might be a better representation of the effect of drugs on the plasma epinephrine concentration in our case since it is a non-parametric test.
