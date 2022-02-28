@@ -2,9 +2,17 @@
 title: "Experimental Design and Data Analysis - Assignment 1"
 author: "Group 75 - Sunny Soni, Maxine Palmen, Muska Neek"
 date: '2022-02-28'
+fontsize: 12pt
 output: 
   pdf_document: 
     keep_tex: yes
+    latex_engine: xelatex
+header-includes:
+- \usepackage[fontsize=10pt]{scrextend}
+
+
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Below, the measured waiting time in the waiting room of doctor's office is given of 15 people. This waiting time is represented in a vector of length 15, where the mean waiting time is a little more than 11 minutes.
 
-```{r waiting_t}
+```{r}
 waiting_t <- c(15.4, 17.9, 19.0, 0.5, 15.9, 2.7, 6.2, 2.5, 4.7, 6.9, 10.8, 24.3, 5.6, 23.0, 10.7)
 mu_t = mean(waiting_t)
 format(round(mu_t, 3), nsmall = 3) #rounding off to 3 decimals places 
@@ -27,7 +35,7 @@ There are several ways to check normality of the waiting time data, such as a hi
 
 Below, we will perform all of these normality checks.
 
-```{r, echo=FALSE}
+```{r}
 par(mfrow=c(1,2))
 hist(waiting_t, main='Histogram of Waiting time')
 qqnorm(waiting_t, main='QQ-Plot of Waiting Time')
@@ -36,14 +44,14 @@ qqline(waiting_t)
 
 According to the histogram, it seems that the waiting time data does not come from a normal distribution. However, the sample size is very small, which could influence this graphical test. The QQ-plot shows a quite straight line of the sample data and therefore this could mean that the sample data comes from normal distribution. To make the normality check final, the Shapiro-Wilk test is performed to accept this assumption that the sample data comes from normal distribution.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 options(digits=5)
 shapiro.test(waiting_t)
 ```
 
 The result of the Shapiro-wilk test shows a p-value of 0.3. This means that the data of the waiting time is normally distributed. To construct a 97%-CI, the following formula needs to be computed: mean(sample) +- z\*se where se is the standard error which is computed by: sd/sqrt(n) where n is the sample size.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 #97% CI means an alpha of 0.03
 z <- qnorm(0.985) #get z(alpha/2)
 me_t <- z*((sd(waiting_t))/sqrt(15))
@@ -55,7 +63,7 @@ sprintf("%f is Upper Bound",Ub)
 
 The upper and lower bound of 97%-CI is [6.743, 15.403]
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 #97% CI means an alpha of 0.03
 z <- qnorm(0.985) #get z(alpha/2)
 sd_t <- (sd(waiting_t))
@@ -66,7 +74,7 @@ sprintf("%f is minimum sample size",sample_size)
 
 Bootstrap
 
-```{r, results='hide'}
+```{r}
 B=1000
 Tstar = numeric(B)
 for(i in 1:B){
@@ -84,7 +92,7 @@ The 97% bootstrap CI is [6.61, 14.86] The original CI was [6.743, 15.403], which
 
 Claim: mean waiting time \< 15 H0: mean waiting time \>= 15 H1: mean waiting time \< 15 Since the data comes from a normal distribution (see normality check at top of document), a t-test can be used. We only have one data sample, and therefor perform a one sample t-test.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 t.test(waiting_t, mu =15, alternative="less")
 ```
 
@@ -92,18 +100,24 @@ The p-value for this one-sample t-test is 0.03, which means that the null-hypoth
 
 In the sign test we care about the median instead of the mean. Our hypotheses H0 and H1 are still the same as in the one-sample t-test, but instead of mean we use median. The hypothesized median is 15.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 above_m <- sum(waiting_t<15)
 binom.test(above_m, length(waiting_t), p=0.5, alternative = "less")
 ```
 
 For this problem, the Wilcoxon signed rank test could also be performed. This test needs a sample from a symmetric population and cares about the median.
 
+```{r}
+boxplot(waiting_t, main='Boxplot to check Symmetry')
+```
+
+When the mean and median are same or very similar, the data is symmetric. In the boxplot, we can see that the median and mean are very similar in case of our data. Therefore, we assume that the data is symmetric. This implies that the wilcoxon test could be used here as well.
+
 #### **1C**
 
 Compute powers of t-test and sign test
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 sd = sd(waiting_t)
 B=1000; n= 50
 psign= numeric(B)
@@ -133,7 +147,7 @@ By comparing the power of the t-test and the sign-test, we can see that the powe
 
 #### **1D**
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 n = length(waiting_t) #sample size
 p_hat_r = 0.53 #right end of CI
 point_est = (sum(waiting_t>15.5))/n #probability that people have to wait longer than 15.5 minutes
@@ -160,7 +174,7 @@ The recovered confidence interval of the probability that a patient has to wait 
 
 Test of proportions H0: Proportion of long waiters of man is equal to proportion of long waiters of woman Ha: Proportions are different
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 prop.test(x=c(3, 2), n = c(7, 8))
 ```
 
@@ -212,7 +226,7 @@ $H_0$ : data is from a exponential distribution given that p\> 0.05 , also in KS
 
 ```{r}
 lambda = 1 / mean(seeded)
-T1 = mean(seeded)
+T1 = median(seeded)
 z_a = qnorm(.975)
 ci_r =mean(seeded)+z_a*(sd(seeded)/sqrt(26))
 ci_l =mean(seeded)-z_a*(sd(seeded)/sqrt(26))
@@ -390,7 +404,7 @@ This is in contrast with the inference deduced using ANOVA test, although not by
 
 Hemoglobin in trout
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 data_h = read.table(file="hemoglobin.txt",header=TRUE)
 data_h$rate = as.factor(data_h$rate)
 data_h$method = as.factor(data_h$method)
@@ -401,7 +415,7 @@ df = data.frame(data_h)
 
 #### **4A**
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 I=4 #4 levels of rate
 J=2 #2 levels of method
 N=10 #80 observations/fishes
@@ -412,7 +426,7 @@ rbind(rep(1:I,each=N*J),rep(1:J,N*I),sample(1:(N*I*J)))
 
 Check for normality before using ANOVA-test. The data comes from normal distributions, since both the histogram and QQ-plot show a normally distributed graph. Besides, the shapiro-wilk test gives a p-value of 0.526 which is above 0.05 and therefore suggests that the data comes from normal distribution.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 model_h = lm(hemoglobin ~ rate*method, data=df)
 #Visualizations on normality
 par(mfrow=c(1,2))
@@ -423,7 +437,7 @@ qqline(residuals(model_h))
 shapiro.test(residuals(model_h)) 
 ```
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 #Performing Anova Test
 anova(model_h)
 summary(model_h)
@@ -435,7 +449,7 @@ From the two-way ANOVA test, we can see that the treatment variable 'rate' has a
 
 The factor 'rate' has the greatest influence on hemoglobin, since rate has a significant effect on hemoglobin and method does not have a significant effect on hemoglobin. However, since there is no interaction between rate and method, we have to remove the interaction term from the model and create an additive model where there is no interaction. Still, only the variable rate has a main effect on hemoglobin, and not the variable 'method'.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 model_new = lm(hemoglobin ~ rate+method, data=df)
 anova(model_new)
 summary(model_new)
@@ -454,7 +468,7 @@ The combination of rate 2 and method B leads to the highest mean of hemoglobin
 
 Estimate the mean hemoglobin value for rate 3 by using method A.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 meth_a3 = df[which(df$method == 'A' & df$rate == 3),] #filter dataframe where rate=3 and method=A
 hemo = meth_a3[,1] #select hemoglobin column
 mean(hemo)
@@ -462,7 +476,7 @@ mean(hemo)
 
 The mean of rate 3 and method A is 9.03
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 rate_m <- with(df, tapply(hemoglobin, rate, mean))
 rate_m
 ```
@@ -471,7 +485,7 @@ Rate 2 leads to the highest mean of hemoglobin.
 
 #### **4D**
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 model_1 = lm(hemoglobin ~ rate, data=df)
 anova(model_1)
 summary(model_1)
@@ -485,7 +499,7 @@ The results from the one-way ANOVA are exactly equal to the results of the two-w
 
 To perform a three-way ANOVA test, we need to check normality. This is done by creating a QQ-plot and histogram of the residuals of the data. Additionally, the Shapiro-Wilk test was performed. The line in the QQ-plot looks linear and the distribution of the histogram can come from a normal distribution. Besides, the Shapiro-Wilk test had a p-value larger than 0.05 which means that the data comes from normal distribution. Therefore, a three-way ANOVA can be performed.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 data = read.table(file="cream.txt",header=TRUE)
 data$batch = as.factor(data$batch)
 data$position = as.factor(data$position)
@@ -511,7 +525,7 @@ Starter 1 is the intercept, which has a p-value of less than 0.05. Therefore the
 
 Insignificant block variables, are variables that have a p-value larger than 0.05. So this is the block variable position, which has a p-value of 0.411
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 model  <- lm(acidity ~ batch+starter, data = df)
 #Performing Anova Test
 anova(model)
@@ -528,7 +542,7 @@ In the Friedman test the data does not need to come from a normal distribution, 
 
 Formula mixed effects is acidity \~ starter+(1\|batch). Where the 1\|batch is used to make from the block variable 'batch' a random effect variable.
 
-```{r, echo=FALSE, results='hide'}
+```{r}
 model_new  = lme4::lmer(acidity ~ starter+(1|batch) , data = df, REML=FALSE)
 model  <- lm(acidity ~ batch+starter, data = df)
 #Performing Anova Test
