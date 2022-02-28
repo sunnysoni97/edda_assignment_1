@@ -12,9 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE, results='hide'}
-library(tidyverse)
-library(ggpubr)
-library(rstatix)
 install.packages("lme4")
 ```
 
@@ -152,8 +149,8 @@ z = m/SE
 CL = pnorm(z)-(1-pnorm(z)) #calculating 2 sided confidence level
 CL
 ```
-The recovered confidence interval of the probability that a patient has to wait longer than 15.5 minutes is [0.137, 0.53], and this has a confidence level of 89.39%
 
+The recovered confidence interval of the probability that a patient has to wait longer than 15.5 minutes is [0.137, 0.53], and this has a confidence level of 89.39%
 
 (e) Test of proportions H0: Proportion of long waiters of man is equal to proportion of long waiters of woman Ha: Proportions are different
 
@@ -290,7 +287,7 @@ After deleting the block variable position, starter 4 leads to a significantly d
 (d) Formula mixed effects is acidity \~ starter+(1\|batch). Where the 1\|batch is used to make from the block variable 'batch' a random effect variable.
 
 ```{r, echo=FALSE, results='hide'}
-model_new  = lmer(acidity ~ starter+(1|batch) , data = df, REML=FALSE)
+model_new  = lme4::lmer(acidity ~ starter+(1|batch) , data = df, REML=FALSE)
 model  <- lm(acidity ~ batch+starter, data = df)
 #Performing Anova Test
 anova(model_new)

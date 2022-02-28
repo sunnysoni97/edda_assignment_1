@@ -121,13 +121,19 @@ summary(mod_1)
 
 Looking at the p-value from the summary of the linear model and ANOVA test table, P-value = 0.011 \< 0.05, we can definitely say that One Way ANOVA test determines that the type of drug has a significant effect on the concentration of plasma epinephrine.
 
-Using the summary of the model, the estimated concentration of each type of drugs is :
+```{r}
+confint(mod_1)
+```
 
-Isofluorane : 43.40%
+In the confidence level of 95%,
 
-Halothane : 3.50 % (The way the linear model adjusted itself, this parameter has p-value\> 0.81. This means the estimator considers its effect insignificant on the concentration of plasma.)
+Estimated concentration of each type of drug is :
 
-Cyclopropane : 41.90%
+Isofluorane : 22.79 % to 64.01%
+
+Halothane : 0.0% to 32.65 % (ignoring the negative Concentration value as it is not semantically possible)
+
+Cyclopropane : 12.75% to 71.05%
 
 ### Question 3-D
 

@@ -2,13 +2,13 @@
 title: "Exercise_2"
 output: html_document
 ---
-Group: 75 
+
+Group: 75
 
 a)  Test whether silver nitrate has an effect by performing three tests: the two samples t-test (argue whether the data are paired or not), the Mann-Whitney test and the Kolmogorov-Smirnov test. Indicate whether these tests are actually applicable for our research question. Comment on your findings.
 
-The Kolmogorov-Smirnov normality test examines if variables are normally distributed, which it is not because the data is exponentially distributed. 
-The Mann-Whitney U test is used to compare whether there is a difference in the dependent variable for two independent groups. It compares whether the distribution of the dependent variable is the same for the two groups and therefore from the same population. The setting needs to be symmetric, which our data is clearly not, therefore not applicable. 
-A t-test can only be used when comparing the means of two groups (a.k.a. pairwise comparison), which is applicable. 
+The Kolmogorov-Smirnov normality test examines if variables are normally distributed, which it is not because the data is exponentially distributed. The Mann-Whitney U test is used to compare whether there is a difference in the dependent variable for two independent groups. It compares whether the distribution of the dependent variable is the same for the two groups and therefore from the same population. The setting needs to be symmetric, which our data is clearly not, therefore not applicable. A t-test can only be used when comparing the means of two groups (a.k.a. pairwise comparison), which is applicable.
+
 ```{r}
 #check for normality, which they are not as seen in the following tests
 data=read.table(file="clouds.txt",header=TRUE)
@@ -28,10 +28,9 @@ wilcox.test(seeded,unseeded)
 ks.test(seeded,unseeded)
 ```
 
-2b
-Repeat the procedures from a) first on the square root of the values in clouds.txt, then on the square root of the square root of the values in clouds.txt. Comment on your findings.
+2b Repeat the procedures from a) first on the square root of the values in clouds.txt, then on the square root of the square root of the values in clouds.txt. Comment on your findings.
 
-Except for the t-test whereas the mean of both values are smaller, the p-values are unchanged in the Mann-whitney and Kolmogorov-Smirnov test, which is plausible and explainable when looking at their formulas, because it takes the proportions into consideration. Therefore leading to the same pvalue. 
+Except for the t-test whereas the mean of both values are smaller, the p-values are unchanged in the Mann-whitney and Kolmogorov-Smirnov test, which is plausible and explainable when looking at their formulas, because it takes the proportions into consideration. Therefore leading to the same pvalue.
 
 ```{r}
 t.test(sqrt(seeded), sqrt(unseeded))
@@ -39,14 +38,11 @@ wilcox.test(sqrt(seeded),sqrt(unseeded))
 ks.test(sqrt(seeded),sqrt(unseeded))
 ```
 
-
-2c
-H0 : data is from a exponential distribution 
-given that p> 0.05 , also in KS-test, then the H0 can not be rejected. Therefore, in conclusion of both tests the data is indeed from an exponential distribution. 
+2c H0 : data is from a exponential distribution given that p\> 0.05 , also in KS-test, then the H0 can not be rejected. Therefore, in conclusion of both tests the data is indeed from an exponential distribution.
 
 ```{r}
 lambda = 1 / mean(seeded)
-
+T1 = mean(seeded)
 z_a = qnorm(.975)
 ci_r =mean(seeded)+z_a*(sd(seeded)/sqrt(26))
 ci_l =mean(seeded)-z_a*(sd(seeded)/sqrt(26))
@@ -77,4 +73,3 @@ binom.test(17,26,p=0.25, alternative = "l")
 #just as the propportion test
 prop.test(17,26,p=0.25, alt="l")
 ```
-
