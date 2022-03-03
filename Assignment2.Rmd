@@ -1,0 +1,221 @@
+---
+title: "Assignment 2"
+author: "Group 75"
+date: "3/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+
+```{r}
+dimnames=list(c("Placebo","Chlorpromazine","Dimenhydrinate","Pentobarbital(100mg)","Pentobarbital(150mg)"),
+              c("Number of Patients","Incidence of Nausea"))
+values <- c( 
+165,95,
+152,52,
+85,52,
+67,35,
+85,37)
+nausea<- matrix(values, nrow=5, ncol= 2, byrow = TRUE, dimnames = dimnames)
+rowsums = apply(nausea, 1, sum); colsums=apply(nausea, 2, sum)
+total = sum(nausea); expected=(rowsums%*%t(colsums))/total
+round(expected, 0)
+```
+In this dataset, we have 5 row variables and 2 column variables. The column variables are the experimental variables and the row variables are the control variables. The form of the contingency table is correct. The null-hypothesis for this case would be that the row variable and column variable are independent. Therefore, a contingency table test could be used to test this hypothesis.  
+
+#Below is the expansive way: the expected table does not have to be created to determine the chisquare but is there just for educational purpose
+
+1A
+```{r}
+#Creating the table with expected values
+#calulated by: E(i,j) = (ni*nj)/n
+rowsums = apply(nausea, 1, sum); colsums=apply(nausea, 2, sum)
+total = sum(nausea); expected=(rowsums%*%t(colsums))/total
+round(expected, 0)
+
+#Chisquare test
+z=chisq.test(nausea); z
+residuals(z)
+```
+H0: Meidicines work equally well againts nausea
+Ha: Medicines do not work equally well.
+The p-value of the chi-squared test is 0.069, which is above 0.05. Therefore, there is no significant difference between the different medicines on the incidences of nausea.So, they all work equally well. H0 cannot be rejected.
+
+The medicine Placebo and Dimenhydrinate both have relatively more incidences of nausea (highest number) than expected. chlorpromazine has relatively lower incidences of nausea (lowest number). 
+
+chlorpromazine has the biggest difference --> most inconsistent
+
+The observed values of Pentobarbital(150mg) and Pentobarbital(100mg) are approximately in line with the expected values.
+
+The numbers represent the differences between observed and expected divided by the square root of expected. high number means observed relatively more incidences of nausea than expected under H0, while a low number indicates relatively less of incidences of nausea than expected under H0.
+
+1B
+Permutation test
+
+```{r}
+#Create dataframe with two columns. Col 1: incidence of nausea. Col 2: the medicine
+medicine = c("Placebo","Chlorpromazine","Dimenhydrinate","Pentobarbital(100mg)","Pentobarbital(150mg)")
+nausea = c(85/175, 67/137, 45/92, 34/68, 40/82)
+df = data.frame(medicine, nausea)
+df$medicine = as.factor(df$medicine)
+df
+```
+```{r}
+boxplot(nausea~medicine, data=df)
+attach(df)
+mystat = function(x) sum(residuals(x)^2)
+B=1000
+t_star = numeric(B)
+for (i in 1:B){
+  medicine_star=sample(medicine)
+  t_star[i]= mystat(lm(nausea~medicine_star))
+}
+
+myt=mystat(lm(nausea~medicine))
+myt
+hist(t_star)
+
+# permutationFunction <- function(y=df$nausea, x=df$medicine){
+#   model.resample = lm(sample(y, replace = F)~x)
+#   fstats = summary(model.resample)$fstat[1]
+#   return(fstats)
+# }
+# 
+# permutationFunction()
+# for (i in 1:N){
+#   fstats[i] <- permutationFunction()
+# }
+
+```
+
+
+
+
+
+
+
+
+
+
+
+2A
+```{r}
+data = read.table("airpollution.txt", header = TRUE)
+model = lm(data$oxidant~data$day + data$wind + data$temperature + data$humidity + data$insolation)
+par(mfrow=c(1,2))
+pairs(data)
+qqnorm(residuals(model))
+qqline(residuals(model))
+plot(fitted(model), residuals(model), main="fitted model")
+```
+
+In the scatterplot, it seems like oxidant and temperature have some kind of dependency. 
+the QQ-plot looks kind of normal, but there are a few points off from the line which may cause problems. 
+
+
+2B
+```{r}
+#added variable plot
+x=residuals(lm(data$wind~data$day + data$temperature + data$humidity + data$insolation))
+y=residuals(lm(data$oxidant~data$day + data$temperature + data$humidity + data$insolation))
+plot(x,y, main ="Added variable plot for + wind", xlab="residual of wind", ylab="residual of oxidant")
+```
+The slope in this plot reflects the regression coefficient beta from the original multiple regression model, and the residuals in this plot are precisely the residuals from the original multiple regression. Outliers and heteroskedasticity (caused by Xj ) can be identified by looking at the plot of a simple rather than multiple regression model.
+
+
+2C
+Step-up method:
+```{r}
+summary(lm(data$oxidant~data$day))
+summary(lm(data$oxidant~data$wind))
+summary(lm(data$oxidant~data$temperature))
+summary(lm(data$oxidant~data$humidity))
+summary(lm(data$oxidant~data$insolation))
+```
+
+When considering the idividual linear models, the variables wind and temperature have the highest R-squared value. Which indicates that these two variable may depend on oxidant. We cannot include two dependent variables in one model. So, we use the step-up method to create a new model.
+The variable with the highest R-squared value is wind.
+Thereafter the model with the highest R-squared value is wind + temperature. (R= 0.7773)
+```{r}
+summary(lm(data$oxidant~data$wind + data$day))
+summary(lm(data$oxidant~data$wind + data$temperature))
+summary(lm(data$oxidant~data$wind + data$humidity))
+summary(lm(data$oxidant~data$wind + data$insolation))
+```
+```{r}
+summary(lm(data$oxidant~data$wind + data$temperature + data$day))
+summary(lm(data$oxidant~data$wind + data$temperature + data$humidity))
+summary(lm(data$oxidant~data$wind + data$temperature + data$insolation))
+```
+Now, the R-squared of the model gets a little higher by adding humdity (R=0.7964)
+
+```{r}
+summary(lm(data$oxidant~data$wind + data$temperature + data$humidity + data$day))
+summary(lm(data$oxidant~data$wind + data$temperature + data$humidity + data$insolation))
+```
+Now the model doesn't get a much higher R-squared value and therefore the model contains the variables wind , temperature, humidity, and has a R-squared value of 0.7964
+
+
+Step-down method
+```{r}
+summary(lm(data$oxidant~data$wind + data$temperature + data$humidity + data$day + data$insolation))
+```
+In the summary of the model, we can see that only two variables are significant (p-value below 0.05). The variable 'day' has the highest p-value, and therefore we remove this one.
+
+```{r}
+summary(lm(data$oxidant~data$wind + data$temperature + data$humidity + data$insolation))
+```
+In the summary of the model, we can see that there are still only two variables significant (p-value below 0.05). The variable 'insolation' has the highest p-value, and therefore we remove this one.
+```{r}
+summary(lm(data$oxidant~data$wind + data$temperature + data$humidity))
+```
+Now, still not all variables have a significant p-value. Therefore, we remove the variable 'humidity', which has the highest p-vlue.
+```{r}
+summary(lm(data$oxidant~data$wind + data$temperature))
+```
+Now all the p-values are significant which means that the variables wind and temperature are included in the model.
+
+The model resulting from the step-down method has one variable more in the model than the model gotten from the step-down method. The R-squared values of both models are very similar. Thus, the model retrieved from the step-down method is better in this case sine it has less variables.
+
+2D
+```{r}
+data = data.frame(data)
+
+a <- data$oxidant
+b <- data$wind
+c <- data$temperature
+
+model_p = lm(a~b+c , data=data)
+
+
+#confidene interval 95%
+newxdata =data.frame(b = 33, c=54)
+predict(model_p, newxdata, interval="confidence", level =0.95)
+predict(model_p, newxdata, interval="prediction", level =0.95)
+```
+The range of the prediction interval is bigger than the range of the confidence interval. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
