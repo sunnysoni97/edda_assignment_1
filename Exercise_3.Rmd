@@ -1,0 +1,95 @@
+---
+title: "Exercise_3"
+output: html_document
+---
+
+3A
+```{r}
+fruitflies_data = read.table("fruitflies.txt",header=TRUE)
+thorax = fruitflies_data$thorax
+longevity = fruitflies_data$longevity
+loglongevity = log(longevity)
+activity = fruitflies_data$activity
+```
+Loading the data
+```{r}
+
+plot(loglongevity, activity, col = factor(activity))
+legend("topleft",
+       legend = levels(factor(activity)),
+       pch = 19,
+       col = factor(levels(factor(activity))))
+plot(loglongevity, thorax, col = factor(activity))
+legend("topleft",
+       legend = levels(factor(activity)),
+       pch = 19,
+       col = factor(levels(factor(activity))))
+#plot(loglongevity, thorax, pch=unclass(activity))
+#for (i in 1:3) abline(lm(loglongevity~thorax,data=fruitflies_data[activity==i,]))
+#slide 13 to get the slope
+plot(thorax~loglongevity,pch=as.character(activity))
+```
+As we can see from the first plot, the longevity for the high activity fruitflies tends to be the lowest whereas the activity for the isolated fruitflies tend to have the highest longevity.
+
+In the second plot it seems as if there is a linear relation between loglongevity and thorax in all three groups of activity. Whereas again the isolated group seem to be centered around a higher thorax and loglongevity levels. 
+
+
+```{r}
+activity = as.factor(fruitflies_data$activity)
+model = lm(loglongevity~activity,data=fruitflies_data)
+
+anova(model)
+summary(model)
+```
+This shows that the p-value is <0.05, which means that it is statistically significant. This means that the activity of a fruitfly is certainly has an stat significant effect on the longevity of a fruitfly. However, this is only when we have not subgrouped yet! So we dont know whether it is applicable to which type of activity of a fruitfly. 
+And it is worth mentioning that it only takes one factor into account which is the activity and not the thorax! Therefore the one-way anova is most likely not correct.
+
+
+```{r}
+aggregate(x= loglongevity,
+          by = list(activity),
+          FUN=mean)
+plot(model)
+```
+
+This shows that the mean of the (log)longevity is different for every group. Whereas the fruitflies with the isolated activity have the longest (log)longevity compared to the others and the low activity come second and high activity comes last. This is in line with what we found on the graph. 
+It could therefore suggest that when there is more activity the (log)longevity decreases with it. 
+
+
+3B
+```{r}
+model1 = lm(loglongevity~thorax + activity,data=fruitflies_data)
+anova(model1) # only the p-value of activity is relevant! 
+
+
+
+```
+It seems that sexual activity does influences longevity when looking at the p-value  of activity (<0.05). However here we can not say anything about the stat significance of thorax, merely regarding activity. Thus we do the following. 
+```{r}
+drop1(model1, test="F") # here all the p-value are relevant
+anova(model1, model)
+```
+
+
+This shows us that both thorax and activity have a stat significance in loglongevity. 
+To be absolutely sure we compared both models, with and without taking the thorax into consideration. Which shows us that there is indeed a stat significance between them, therefore concluding that there is a difference when taking the thorax into consideration in loglongevity of the fruitflies. 
+
+```{r}
+summary(model1)
+```
+It seems that both isolated- [0.40998] and low activity[0.28570  ] have a better loglongevity compared to the high activity when looking at the estimates. Therefore, one can conclude that the sexual activity decreases the (log)longevity of the fruitflies.
+```{r}
+confint(model1)
+```
+```{r}
+aggregate(x= loglongevity,
+          by = list(activity),
+          FUN=min)
+
+
+aggregate(x= loglongevity,
+          by = list(activity),
+          FUN=max)
+
+```
+
