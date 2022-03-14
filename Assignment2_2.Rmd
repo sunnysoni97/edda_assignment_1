@@ -1,0 +1,296 @@
+---
+title: "Assignment2_2"
+author: "Group 75"
+date: '2022-03-14'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+
+```{r}
+dimnames=list(c("Chlorpromazine","Pentobarbital(100mg)","Pentobarbital(150mg)"),
+              c("Number of Patients","Incidence of Nausea"))
+values <- c( 
+100,52,
+32,35,
+48,37)
+
+nausea<- matrix(values, nrow=3, ncol= 2, byrow = TRUE, dimnames = dimnames)
+rowsums = apply(nausea, 1, sum); colsums=apply(nausea, 2, sum)
+total = sum(nausea); expected=(rowsums%*%t(colsums))/total
+round(expected, 0)
+```
+In this dataset, we have 3 row variables and 2 column variables. The column variables are the experimental variables and the row variables are the control variables. The form of the contingency table is correct. The null-hypothesis for this case would be that the row variable and column variable are independent. Therefore, a contingency table test could be used to test this hypothesis.  
+
+#Below is the expansive way: the expected table does not have to be created to determine the chisquare but is there just for educational purpose
+
+1A
+```{r} 
+#Creating the table with expected values
+#calulated by: E(i,j) = (ni*nj)/n
+set.seed(1)
+rowsums = apply(nausea, 1, sum); colsums=apply(nausea, 2, sum)
+total = sum(nausea); expected=(rowsums%*%t(colsums))/total
+round(expected, 0)
+
+#Chisquare test
+z=chisq.test(nausea); z
+residuals(z)
+```
+
+H0: Medicines work equally well against nausea
+Ha: Medicines do not work equally well.
+The p-value of the chi-squared test is 0.036, which is below 0.05. Therefore, there is a significant difference between the different medicines on the incidences of nausea.So, one or more of them works better than the other. H0 can be rejected.
+
+The medicine Pentobarbital(100mg) has relatively more incidences of nausea (highest number) than expected. chlorpromazine has relatively lower incidences of nausea (lowest number). 
+
+The observed value of Pentobarbital(150mg) is approximately in line with the expected value.
+
+The numbers represent the differences between observed and expected divided by the square root of expected. high number means observed relatively more incidences of nausea than expected under H0, while a low number indicates relatively less of incidences of nausea than expected under H0.
+
+#main inconsistencies
+pentobarbital (100mg) has the main inconsistencies. The difference between observed and expected is biggest.
+
+1B
+Permutation test
+```{r}
+##T1
+nauseadata = read.table("nauseatable.txt", header = TRUE)
+attach(nauseadata)
+nauseadata
+
+nonausea_detected = nauseadata[, 1]
+
+nausea_detected = nauseadata[, 2]
+
+nausea = as.vector(rep(1, each = nausea_detected[1]+nausea_detected[2]+nausea_detected[3]))
+nausea
+
+nonausea = as.vector(rep(0, each = nonausea_detected[1]+nonausea_detected[2]+nonausea_detected[3]))
+nonausea
+
+nausea_vector = c(nonausea, nausea)
+nausea_vector
+
+label_medicin <- function(label, count){
+  
+  med_label <- as.vector(rep(label, count))
+  
+  return(med_label)
+  
+}
+
+# Total count of medicines for No nausea
+C_nonausea = 100
+P1_nonausea = 32
+P2_nonausea = 48
+
+# Total count of medicines for Nausea
+C_nausea =  52
+P1_nausea = 35
+P2_nausea = 37
+
+
+medicin_vector = c(label_medicin("C", C_nonausea), label_medicin("P1", P1_nonausea), label_medicin("P2", P2_nonausea), label_medicin("C", C_nausea), label_medicin("P1", P1_nausea), label_medicin("P2", P2_nausea))
+medicin_vector
+
+
+nausea.frame = data.frame(nausea_vector, medicin_vector)
+
+# We assigned labels "C" for Chlorpromazine, "P1" for Pentobarbital(100mg) and "P2" for Pentobarbital(150mg). 
+# We could have assigned same label for both doses of Pentobarbital. But we want to be specific so we used different labels for each one.
+
+nausea.frame
+# head(nausea.frame)
+# tail(nausea.frame)
+
+
+##T2
+xtabs(~medicin_vector+nausea_vector, data = nausea.frame)
+
+#With xtabs we get a contingency table from the medicin and nausea factors.
+#We can see that there are more people suffering from nausea with the medicin Chlorpromazine than with Pentobarbital.
+# In this case R does not give the warning, since the approximation is reliable for
+# nausea_vector and medicin_vector in nausea.frame
+
+##T3
+# Check Lecture 4 page : 28-32
+
+B = 1000
+tstar =  numeric(B)
+for (b in 1:B) {
+  medicinstar = sample(medicin_vector)  # Permutting the medicin labels
+  tstar[b] = chisq.test(xtabs(~medicinstar+nausea_vector, data = nausea.frame))[[1]] #Using the statistics mentioned in the exercise
+}
+
+set.seed(1)
+myt = chisq.test(xtabs(~medicin_vector+nausea_vector, data = nausea.frame))[[1]]
+
+hist(tstar)
+myt # value = 6.625
+
+pl = sum(tstar<myt)/B
+pl 
+pr = sum(tstar>myt)/B
+pr
+
+pmin = min(pl,pr)
+pmin
+2*pmin # 2*p-value = 0.082
+
+
+### Findings: According to the p-value we cannot reject that the two medicins have a significant difference. 
+# Therefore, we can say that they work equally well for the nausea.
+
+#Question 1C
+#p-value 1A
+pvalue_chisq = chisq.test(xtabs(~medicin_vector+nausea_vector, data = nausea.frame))[[3]]
+pvalue_chisq #p-value of 0.0364
+
+#p-value 1B
+pvalue_tstar=2*pmin
+pvalue_tstar #p-value of 0.07
+# we can see that we obtain two different p-values. 
+```
+
+We see that the p-value of the permutation test and chisquare test are different. According to the permutation test the medicines are equally effective against nausea, while for the chisquare test this isn't the case.
+
+The bootstrap of the permutation test leads to a sample of 1000 values while the expected sample of the chi-squared test leads to the same length sample as the original sample which is 304. Therefore it may be possible that the permutation is more reliable in this case since the sample size is bigger.
+
+In chi-square test the hypothesis is as following:
+H0: the distributions over row (column) factors are equal .
+
+In permutation test the hypothesis is as following:
+H0: The samples all come from the same population
+
+##Exercise 2
+2A
+```{r}
+pollution = read.table("airpollution.txt", header = TRUE)
+model_pol = lm(pollution$oxidant~data$day + pollution$wind + pollution$temperature + pollution$humidity + pollution$insolation)
+par(mfrow=c(1,2))
+pairs(pollution)
+qqnorm(residuals(model_pol))
+qqline(residuals(model_pol))
+plot(fitted(model_pol), residuals(model_pol), main="fitted model")
+```
+
+In the scatterplot, it seems like oxidant and temperature have some kind of dependency. 
+the QQ-plot looks kind of normal, but there are a few points off from the line which may cause problems. 
+
+```{r}
+round(cor(pollution[,2:6]),2)
+```
+In the correlation table we can see that:
+- wind and oxidant have a negative correlation (-0.77)
+- Temperature and oxidant have a positive correlation (0.76)
+- Wind and temperature has a negative correlation (-0.5)
+- temperature and humidity have a negative correlation (-0.54)
+- temperature and insulation have a positive correlation (0.57)
+- oxidant and insolation have a positive correlation of (0.51)
+
+Correlation is assumed when the value is 0.5/-0.5 or higher
+
+
+
+
+2B
+```{r}
+#lecture 8 slide 20
+#added variable plot
+x=residuals(lm(pollution$wind~pollution$day + pollution$temperature + pollution$humidity + pollution$insolation))
+y=residuals(lm(pollution$oxidant~pollution$day + pollution$temperature + pollution$humidity + pollution$insolation))
+plot(x,y, main ="Added variable plot for oxidant + wind", xlab="residual of wind", ylab="residual of oxidant")
+```
+The slope in this plot reflects the regression coefficient beta from the original multiple regression model, and the residuals in this plot are precisely the residuals from the original multiple regression. Outliers and heteroskedasticity (caused by Xj ) can be identified by looking at the plot of a simple rather than multiple regression model.
+
+
+2C
+Step-up method:
+```{r}
+summary(lm(pollution$oxidant~pollution$day, data = pollution)) #R-value = 0.01
+summary(lm(pollution$oxidant~pollution$wind)) #R-value = 0.058
+summary(lm(pollution$oxidant~pollution$temperature)) #R-value = 0.0576
+summary(lm(pollution$oxidant~pollution$humidity)) #R-value = 0.124
+summary(lm(pollution$oxidant~pollution$insolation)) #R-value = 0.255
+```
+
+When considering the idividual linear models, the variables wind and temperature have the highest R-squared value. Which indicates that these two variable may depend on oxidant. We cannot include two dependent variables in one model. So, we use the step-up method to create a new model.
+
+The variable with the highest R-squared value is wind.
+Thereafter the model with the highest R-squared value is wind + temperature. (R= 0.7773)
+```{r}
+summary(lm(pollution$oxidant~pollution$wind + pollution$day)) #R-value = 0.5989
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature)) #R-value = 0.7773
+summary(lm(pollution$oxidant~pollution$wind + pollution$humidity)) #R-value = 0.5913
+summary(lm(pollution$oxidant~pollution$wind + pollution$insolation)) #R-value = 0.6613
+```
+
+
+```{r}
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature + pollution$day)) #R-value = 0.7958
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature + pollution$humidity)) #R-value = 0.7964
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature + pollution$insolation)) #R-value = 0.7816
+```
+Now the model doesn't get a much higher R-squared value and therefore the model contains the variables wind and temperature  and has a R-squared value of 0.77. Besides all the models have a similar R value which is not necessary. The less variables the better. 
+
+The model becomes: 
+
+y = -5.20 -0.42706 * wind + 0.520 * temp
+
+lm(pollution$oxidant~pollution$wind + pollution$temperature)
+
+
+##Step-down method
+```{r}
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature + pollution$humidity + pollution$day + pollution$insolation))
+```
+In the summary of the model, we can see that only two variables are significant (p-value below 0.05). The variable 'day' has the highest p-value, and therefore we remove this one.
+
+```{r}
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature + pollution$humidity + pollution$insolation))
+```
+In the summary of the model, we can see that there are still only two variables significant (p-value below 0.05). The variable 'insolation' has the highest p-value, and therefore we remove this one.
+```{r}
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature + pollution$humidity))
+```
+Now, still not all variables have a significant p-value. Therefore, we remove the variable 'humidity', which has the highest p-vlue.
+```{r}
+summary(lm(pollution$oxidant~pollution$wind + pollution$temperature))
+```
+Now all the p-values are significant which means that the variables wind and temperature are included in the model.
+
+model becomes:
+y = -5.2 - 0.43 * wind + 0.52 * temp
+
+The models resulting from the step-down method and step-up method both have the same variables in the model. The R-squared values of both models are the same and the models are exactly the same. 
+
+2D
+```{r}
+pol = data.frame(pollution)
+
+a <- pol$oxidant
+b <- pol$wind
+c <- pol$temperature
+
+model_p = lm(a~b+c , data=pol)
+
+
+#confidene interval 95%
+newxdata =data.frame(b = 33, c=54)
+predict(model_p, newxdata, interval="confidence", level =0.95)
+predict(model_p, newxdata, interval="prediction", level =0.95)
+```
+The range of the prediction interval is bigger than the range of the confidence interval. 
+
+
+
+
+
+
+
+
