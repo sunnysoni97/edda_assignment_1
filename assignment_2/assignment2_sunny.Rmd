@@ -1,0 +1,252 @@
+---
+title: "assignment2_sunny"
+author: "Sunny"
+date: '2022-03-10'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question4
+
+```{r}
+psi_data = read.table("psi.txt",header=TRUE)
+#psi_data$psi = as.factor(psi_data$psi)
+#psi_data$passed = as.factor(psi_data$passed)
+summary(psi_data)
+```
+
+#### Part 1
+
+```{r}
+model_g <- glm(passed~psi+gpa,data=psi_data, family=binomial)
+summary(model_g)
+```
+
+```{r}
+model_l <- lm(passed~psi+gpa,data=psi_data)
+anova(model_l)
+
+```
+
+Using the summary of linear model as well as anova tests, we can clearly see that both factors psi and gpa, have a significant effect on the response variable "passed".
+
+From our tests, we can say that psi works.
+
+#### Part 2
+
+```{r}
+increased_odds_psi = -11.6+2.34+(3.06*3.0)
+prob_with_psi = 1/(1+exp(-increased_odds_psi))
+print(prob_with_psi)
+
+increased_odds_non_psi = -11.6+(3.06*3.0)
+prob_without_psi = 1/(1+exp(-increased_odds_non_psi))
+print(prob_without_psi)
+```
+
+Using the summary of linear model, we can calculate the probability that a student who receives psi and has a GPA equal to 3.0 has a probability of 0.48, while the student not having it has a probability of 0.08.
+
+#### Part 3
+
+```{r}
+#ODDS WITH PSI
+
+odds_with_psi = -11.60 + 2.34
+p_odds_with_psi = 1/(1+exp(-odds_with_psi))
+print(p_odds_with_psi)
+
+
+#ODDS WITHOUT PSI
+odds_without_psi = -11.60
+p_odds_wout_psi = 1/(1+exp(-odds_without_psi))
+print(p_odds_wout_psi)
+
+#RELATIVE CHANGE
+rel_change = (p_odds_with_psi-p_odds_wout_psi)/p_odds_wout_psi
+print(rel_change)
+```
+
+Hence, the relative odds increase 9.38 times for passing if the student has psi.
+
+No, the relative change calculated is not dependent on GPA because we have not included that factor for the estimation of the odds.
+
+#### Part 4
+
+```{r}
+non_passed = psi_data[which(psi_data$passed == "0"),]
+passed = psi_data[which(psi_data$passed == "1"),]
+
+#filtering data
+psi_passed = passed[which(passed$psi == "1"),]
+non_psi_passed = passed[which(passed$psi == "0"),]
+psi_non_passed = non_passed[which(non_passed$psi == "1"),]
+non_psi_non_passed = non_passed[which(non_passed$psi == "0"),]
+
+#putting in matrix
+
+con_mat = matrix(data=c(lengths(psi_passed)[1],lengths(psi_non_passed)[1],lengths(non_psi_passed)[1],lengths(non_psi_non_passed)[1]),byrow = TRUE,nrow=2,ncol=2,dimnames = list(c("PSI","NON-PSI"),c("PASSED","NON-PASSED")))
+
+print(con_mat)
+
+```
+
+```{r}
+fisher.test(con_mat) #THIS IS PREFERRED
+chisq.test(con_mat) #THIS IS JUST FOR EXTRA
+```
+
+Since the p-value\<0.03 in the fisher's exact test, we can reject the null hypothesis and accept the alternate hypthesis that there is dependence of type of student (psi/non-psi) on the outcome if he passes or does not pass. There is significant dependence between row and column factors.
+
+We can also do chisquare test here for testing the same, but in this case fisher test is preferred since its an exact test and doesn't approximate anything. Its very suited for a 2x2 matrix contigency table testing, hence our preference. Chisquare test also shows the significance in the factor using our tables.
+
+Odds with student having psi and passed = 8/32
+
+Odds with student having non-psi and passed = 3/32
+
+```{r}
+p_1 = 8/32
+p_2 = 3/32
+rel_change_2 = (p_1-p_2)/p_2
+print(rel_change_2)
+```
+
+As we can see, the relative change in odds is 1.67 times, meaning the person has 1.67 times the chance of passing the test if he/she takes psi.
+
+The answer is quite different compared to first approach where it was 9.38 times increase.
+
+#### Part 5
+
+No, the second approach is not wrong (contingency table and fisher's test) and is acceptable because of small number of data points and more accurate in this case.
+
+**Advantages of second approach (contingency tables):**
+
+Since data is aggregated into matrix, its very easy to calculate probabilities if tests like fisher test and chisquare test indicate significant dependence of row variables onto column ones.
+
+**Disadvantage:**
+
+Simpler form of calculations can be misleading for data with a large number of factors, harder to represent in matrix form. Doesnt work with large data efficiently.
+
+**Advantages of first approach (Linear Regression) :**
+
+Complexity and precision with ability to take in large number of factors. Large data handling possible.
+
+**Disadvantages:**
+
+Probability calculations are complex and computationally harder. Not very accurate with less number of data points (Quite relevant in our case of just 32 children and 2 factors with 2 levels).
+
+## Question 5
+
+```{r}
+awards.data = read.table(file="awards.txt", header=TRUE)
+
+attach(awards.data)
+```
+
+#### Part 1
+
+```{r}
+awards.data$prog=as.factor(awards.data$prog)
+awards.glm=glm(num_awards ~ prog, family="poisson", data=awards.data)
+summary(awards.glm)
+
+# Vocational program
+predict.1 = predict(awards.glm, data.frame(prog = as.factor(1)), type="response")
+predict.1 = exp(predict.1)
+predict.1 # 1.78
+
+# General program
+predict.2 = predict(awards.glm, data.frame(prog = as.factor(2)), type="response")
+predict.2 = exp(predict.2)
+predict.2 # 3.22
+
+# Academic program
+predict.3 = predict(awards.glm, data.frame(prog = as.factor(3)), type="response")
+predict.3 = exp(predict.3)
+predict.3 # 2.45
+```
+
+By simply looking at the results yielded by the function predict, we can assume that the General program is the best when it comes to the highest number of awards the students got.
+
+**\# Estimate the numbers of awards for all the three types of program**
+
+The coefficient of prog2 is equal to 0.7. The p-value=0.001, which is lower than the significance level. Therefore, it can be said that the students in prog2 received more awards than the ones in prog1.
+
+```{r}
+ebeta1.a = exp(summary(awards.glm)$coefficients[2,1])
+ebeta1.a
+
+```
+
+After calculating the rate ratio, it seems that the students in prog2 received 2.02 more awards than the students in prog1.
+
+The coefficient of prog3 is equal to 0.44. The p-value=0.0719, which is lower than the significance level.
+
+```{r}
+## From the summary table, the intercept value is -0.54.
+ebeta0.a = exp(summary(awards.glm)$coefficients[1,1])
+ebeta0.a
+## 0.57 is the predicted mean number of awards for the students from prog1.
+```
+
+**\# Which program type is the best for the number of awards for this model?**
+
+It seems that the best program is the General Program (prog2) since it shows the greatest increase per unit.
+
+#### Part 2
+
+For the situation that is presented in a), a Kruskall-Wallis test can be used because the dependent variable (the number of awards) is measured at a continuous level, the independent variable (types of program) consists of three categorical, independent groups. The independence of observations can also be assumed, since it is about students that followed a certain program. We cannot say that they followed more than one program at the same time.
+
+```{r}
+kruskal.test(num_awards~prog, data=awards.data)
+```
+
+The null hypothesis is that the type of program will not influence the number of awards. The Kruskal-Wallis test yields a p-value = 0.0046, which is lower than the significance level, therefore we can reject the null hypothesis. This means that the number of awards is influenced by the program the students followed.
+
+#### Part 3
+
+```{r}
+awards.data$prog=as.factor(awards.data$prog)
+awards.glm2=glm(num_awards ~ prog + math, family="poisson", data=awards.data)
+summary(awards.glm2)
+
+# Testing for interaction
+awards.glm3=glm(num_awards ~ prog * math, family="poisson", data=awards.data)
+anova(awards.glm3, test="Chisq")
+```
+
+The null hypothesis is that there is no interaction between the factor "prog" and predictor "math". The test yields a p-value=0.15, which is higher than the significance level, therefore we cannot reject the null hypothesis.
+
+**\# Which program type is the best for the number of awards? Comments on your findings.**
+
+```{r}
+predict.1.c = max(predict(awards.glm2, 
+                          data.frame(prog=as.factor(1), 
+                                     math=awards.data[awards.data$prog==1,]$math), 
+                          type="response"))
+exp(predict.1.c)
+
+predict.2.c = max(predict(awards.glm2, 
+                          data.frame(prog=as.factor(2), 
+                                     math=awards.data[awards.data$prog==2,]$math), 
+                          type="response"))
+exp(predict.2.c)
+
+predict.3.c = max(predict(awards.glm2, 
+                          data.frame(prog=as.factor(3), 
+                                     math=awards.data[awards.data$prog==3,]$math), 
+                          type="response"))
+exp(predict.3.c)
+```
+
+After running the predict function to estimate the number of awards per program, it seems that the predictor "math" changed the prediction that was made at a). The program that is the best for the number of awards is the Academic program (3).
+
+**\# Estimate the numbers of awards for the vocational program and math score 55.**
+
+```{r}
+newdata=data.frame(prog=as.factor(1), math = 55)
+exp(predict(awards.glm2, newdata, type="response"))
+
+```

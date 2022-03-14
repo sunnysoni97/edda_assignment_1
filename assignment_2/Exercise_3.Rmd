@@ -4,6 +4,7 @@ output: html_document
 ---
 
 3A
+
 ```{r}
 fruitflies_data = read.table("fruitflies.txt",header=TRUE)
 thorax = fruitflies_data$thorax
@@ -11,6 +12,7 @@ longevity = fruitflies_data$longevity
 loglongevity = log(longevity)
 activity = fruitflies_data$activity
 ```
+
 Loading the data
 
 ```{r}
@@ -34,11 +36,12 @@ qqline(fliesframe$loglongevity)
 shapiro.test(fliesframe$loglongevity)
 #Not normal
 ```
-None of the data seem to have a normal distribution. 
+
+None of the data seem to have a normal distribution.
 
 ```{r}
 
-plot(loglongevity, activity, col = factor(activity))
+plot(y=loglongevity, x=as.factor(activity))
 legend("topleft",
        legend = levels(factor(activity)),
        pch = 19,
@@ -56,12 +59,13 @@ plot(thorax~loglongevity,pch=as.character(activity))
 
 
 ```
+
 As we can see from the first plot, the longevity for the high activity fruitflies tends to be the lowest whereas the activity for the isolated fruitflies tend to have the highest longevity.
 
-In the second plot it seems as if there is a linear relation between loglongevity and thorax in all three groups of activity. Whereas again the isolated group seem to be centered around a higher thorax and loglongevity levels. 
-
+In the second plot it seems as if there is a linear relation between loglongevity and thorax in all three groups of activity. Whereas again the isolated group seem to be centered around a higher thorax and loglongevity levels.
 
 ```{r}
+model1 = lm(loglongevity~thorax + activity,data=fruitflies_data)
 qqnorm(residuals(model1)) #whereas model1 = lm(loglongevity~thorax + activity,data=fruitflies_data)
 plot(fitted(model1),residuals(model1))
 abline(0,0)
@@ -71,7 +75,6 @@ plot(loglongevity~thorax,pch=unclass(activity))
 
 # EXTRA! : BUT CAN SOMEONE INTERPRET THE RESIDUAL PLOT?
 
-
 ```{r}
 activity = as.factor(fruitflies_data$activity)
 model = lm(loglongevity~activity,data=fruitflies_data)
@@ -79,17 +82,12 @@ model = lm(loglongevity~activity,data=fruitflies_data)
 anova(model)  # influence sexual activity on longevity, pvalue = 1.798e-07
 summary(model) #to find the estimates of the three groups
 ```
-This shows that the p-value is <0.05, which means that it is statistically significant. 
-And it is worth mentioning that it only takes one factor into account which is the activity and not the thorax! 
-Note: the outcome is not fully reliable because the ANOVA is supposed to be performed on data that is normally distributed which it is not. 
-Because you create a linear model which creates data that is normal therefore ANOVA can be used! 
+
+This shows that the p-value is \<0.05, which means that it is statistically significant. And it is worth mentioning that it only takes one factor into account which is the activity and not the thorax! Note: the outcome is not fully reliable because the ANOVA is supposed to be performed on data that is normally distributed which it is not. Because you create a linear model which creates data that is normal therefore ANOVA can be used!
 
 # IS THIS DONE CORRECTLY? (YES!)
-We can see in the summary that the estimates are the following 
-High activity: 3.60212
-Isolated activity: 3.60212+0.51722 =4.11934
-Low activity: 3.60212+0.39771= 3.999836
-According to the estimates longevity decreases with sexual activity. 
+
+We can see in the summary that the estimates are the following High activity: 3.60212 Isolated activity: 3.60212+0.51722 =4.11934 Low activity: 3.60212+0.39771= 3.999836 According to the estimates longevity decreases with sexual activity.
 
 ```{r}
 #method 2 to achieves estimates (this gives the same results)
@@ -99,18 +97,19 @@ aggregate(x= loglongevity,
 
 ```
 
-This shows that the mean of the (log)longevity is different for every group. Whereas the fruitflies with the isolated activity have the longest (log)longevity compared to the others and the low activity come second and high activity comes last. This is in line with what we found on the graph. 
-It could therefore suggest that when there is more sexual activity of a fruitflies the (log)longevity decreases with it. 
-------------------------------------------------------------
+This shows that the mean of the (log)longevity is different for every group. Whereas the fruitflies with the isolated activity have the longest (log)longevity compared to the others and the low activity come second and high activity comes last. This is in line with what we found on the graph. It could therefore suggest that when there is more sexual activity of a fruitflies the (log)longevity decreases with it. ------------------------------------------------------------
 
 3B
+
 ```{r}
 model1 = lm(loglongevity~thorax + activity,data=fruitflies_data) # thorax as explanatory variable/ factor
 anova(model1) # only the p-value of activity is relevant! pvalue = 4e-09
 
 
 ```
-It seems that sexual activity does influences longevity when looking at the p-value  of activity (<0.05). However here we can not say anything about the stat significance of thorax, merely regarding activity. Thus we do the following. 
+
+It seems that sexual activity does influences longevity when looking at the p-value of activity (\<0.05). However here we can not say anything about the stat significance of thorax, merely regarding activity. Thus we do the following.
+
 ```{r}
 #model1 = lm(loglongevity~thorax + activity,data=fruitflies_data)
 #model = lm(loglongevity~activity,data=fruitflies_data)
@@ -119,23 +118,61 @@ drop1(model1, test="F") # here all the p-values are relevant!
 anova(model1, model)
 ```
 
-
-This shows us that both thorax and activity have a stat significance in loglongevity. 
-To be absolutely sure we compared both models which is done in the anova, with and without taking the thorax into consideration. Which shows us that there is indeed a stat significance between them, therefore concluding that there is a difference when taking the thorax into consideration in loglongevity of the fruitflies. 
+This shows us that both thorax and activity have a stat significance in loglongevity. To be absolutely sure we compared both models which is done in the anova, with and without taking the thorax into consideration. Which shows us that there is indeed a stat significance between them, therefore concluding that there is a difference when taking the thorax into consideration in loglongevity of the fruitflies.
 
 ```{r}
 #model1 = lm(loglongevity~thorax + activity,data=fruitflies_data)
 #model = lm(loglongevity~activity,data=fruitflies_data)
 summary(model1) # including the thorax!! 
 ```
+
 It seems that both isolated- [1.21893 + 0.40998 =1.62891] and low activity[1.21893 + 0.28570 = 1.50463 ] have a better loglongevity compared to the high activity when looking at the estimates. Therefore, one can conclude that the sexual activity decreases the (log)longevity of the fruitflies.
-```{r} 
+
+```{r}
 # EXTRA! 
 confint(model1)
 ```
-# How can we interpret these results? because there are these are 3 groups of each 25 fruitflies. Perhaps whether the estimate of a parameter is in the confidence interval. 
 
-#What are the estimated longevities for the three groups, for flies with the minimal and maximal thorax lengths? [SUNNY PUT YOUR ANSWER HERE!]
+# How can we interpret these results? because there are these are 3 groups of each 25 fruitflies. Perhaps whether the estimate of a parameter is in the confidence interval.
+
+**#What are the estimated longevities for the three groups, for flies with the minimal and maximal thorax lengths?**
+
+**Flies with high sexual activity -**
+
+```{r}
+flieshigh_sorted = flieshigh[order(flieshigh$thorax),]
+flieshigh_sorted$loglongevity[1]
+flieshigh_sorted$loglongevity[25]
+
+```
+
+loglongevity with lowest thorax length = 2.772589
+
+loglongevity with highest thorax length = 3.78419
+
+**Flies with low sexual activity -**
+
+```{r}
+flieslow_sorted = flieslow[order(flieslow$thorax),]
+flieslow_sorted$loglongevity[1]
+flieslow_sorted$loglongevity[25]
+```
+
+loglongevity with lowest thorax length = 3.044522
+
+loglongevity with highest thorax length = 4.219508
+
+**Flies with isolated sexual activity -**
+
+```{r}
+fliesisolated_sorted = fliesisolated[order(fliesisolated$thorax),]
+fliesisolated_sorted$loglongevity[1]
+fliesisolated_sorted$loglongevity[25]
+```
+
+loglongevity with lowest thorax length = 3.688879
+
+loglongevity with highest thorax length = 4.317488
 
 3C
 
@@ -143,14 +180,14 @@ confint(model1)
 # QUESTION : How does thorax length influence longevity? 
 #model1 = lm(loglongevity~thorax + activity,data=fruitflies_data)
 model0 = lm(loglongevity~thorax,data=fruitflies_data)
+model2= lm(loglongevity~thorax*activity,data=fruitflies_data)
 anova(model0)
 anova(model0,model2)
 #summary(model0) #pvalue thorax = 3.15e-13
 #anova(model0) # pvalue thorax = 3.151e-13
 ```
-In order to know whether thorax is an interaction term model2 has been created. The thorax parameter has a pvalue < 0.05 which is 3.151e-13. 
-Conclusion: This suggests that the thorax does indeed influence the loglongevity of the fruitflies. 
 
+In order to know whether thorax is an interaction term model2 has been created. The thorax parameter has a pvalue \< 0.05 which is 3.151e-13. Conclusion: This suggests that the thorax does indeed influence the loglongevity of the fruitflies.
 
 ```{r}
 #Question: using an appropriate test whether the dependence of thorax length is similar under all three conditions of sexual activity.
@@ -160,6 +197,7 @@ anova(model2) # pvalue thorax:activity =  0.1536,
 summary(model2)
 anova(model0, model2) #pvalue = 1.753e-08 which means that there is a stat signif difference between the two models. Which can be explained by the fact that thorax is statistic signi in one model and not in the other. 
 ```
+
 The thorax
 
 ```{r}
@@ -193,14 +231,14 @@ legend("topleft",
        col = factor(levels(factor(activity))))
 ```
 
-I think merely the last plot is most relevant in for this question. It does not seem as if the longevity is influences by thorax length in either groups. 
+I think merely the last plot is most relevant in for this question. It does not seem as if the longevity is influences by thorax length in either groups.
 
-3D 
+3D
 
-The analysis with the thorax length should not be included because there should not be interaction between the sexual activity and the thorax length. This is because the experimenters randomly chose the sexual activity that the flies were going to have and not based on thorax length. 
-Besides, when thorax length was included there was no significant difference found. 
+The analysis with the thorax length should not be included because there should not be interaction between the sexual activity and the thorax length. This is because the experimenters randomly chose the sexual activity that the flies were going to have and not based on thorax length. Besides, when thorax length was included there was no significant difference found.
 
 3E
+
 ```{r}
 #model1 = lm(loglongevity~thorax + activity,data=fruitflies_data) # thorax as explanatory variable/ factor
 #model2= lm(loglongevity~thorax*activity,data=fruitflies_data);
@@ -218,14 +256,11 @@ anova(model2) #thorax:activity pvalue = 0.1536
 
 
 ```
-Changing the loglongevity to longevity does not change the statistical significance of a parameter. For example for longevity the thorax is significant which is also for loglongevity. For the interaction between thorax and activity the parameter is not significant for both loglongevity and longevity. 
-However it is noteworty mentioning that logarithmic transformation is a convenient means of transforming a highly skewed variable into a more normalized dataset. When modeling variables with non-linear relationships, the chances of producing errors may also be skewed negatively.
-Conclusion: 
-Given that the data is not normal the logarithm can be used for transformation of skewed datasets into a normalized dataset. Which explains the usage of logarithms, however it does not make a difference in terms for pvalues. Therefore the usage without logarithm transformation is wrong. 
+
+Changing the loglongevity to longevity does not change the statistical significance of a parameter. For example for longevity the thorax is significant which is also for loglongevity. For the interaction between thorax and activity the parameter is not significant for both loglongevity and longevity. However it is noteworty mentioning that logarithmic transformation is a convenient means of transforming a highly skewed variable into a more normalized dataset. When modeling variables with non-linear relationships, the chances of producing errors may also be skewed negatively. Conclusion: Given that the data is not normal the logarithm can be used for transformation of skewed datasets into a normalized dataset. Which explains the usage of logarithms, however it does not make a difference in terms for pvalues. Therefore the usage without logarithm transformation is wrong.
 
 ```{r}
 anova(model3,model4) #pvalue = 4.573e-07
 anova(model0,model2) #pvalue = 1.753e-08
 
 ```
-
