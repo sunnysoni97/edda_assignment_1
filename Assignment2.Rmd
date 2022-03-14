@@ -12,15 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Exercise 1
 
 ```{r}
-dimnames=list(c("Placebo","Chlorpromazine","Dimenhydrinate","Pentobarbital(100mg)","Pentobarbital(150mg)"),
+dimnames=list(c("Chlorpromazine","Pentobarbital(100mg)","Pentobarbital(150mg)"),
               c("Number of Patients","Incidence of Nausea"))
 values <- c( 
-165,95,
-152,52,
-85,52,
-67,35,
-85,37)
-nausea<- matrix(values, nrow=5, ncol= 2, byrow = TRUE, dimnames = dimnames)
+100,52,
+32,35,
+48,37)
+
+nausea<- matrix(values, nrow=3, ncol= 2, byrow = TRUE, dimnames = dimnames)
 rowsums = apply(nausea, 1, sum); colsums=apply(nausea, 2, sum)
 total = sum(nausea); expected=(rowsums%*%t(colsums))/total
 round(expected, 0)
@@ -30,9 +29,10 @@ In this dataset, we have 5 row variables and 2 column variables. The column vari
 #Below is the expansive way: the expected table does not have to be created to determine the chisquare but is there just for educational purpose
 
 1A
-```{r}
+```{r} 
 #Creating the table with expected values
 #calulated by: E(i,j) = (ni*nj)/n
+set.seed(1)
 rowsums = apply(nausea, 1, sum); colsums=apply(nausea, 2, sum)
 total = sum(nausea); expected=(rowsums%*%t(colsums))/total
 round(expected, 0)
@@ -41,15 +41,14 @@ round(expected, 0)
 z=chisq.test(nausea); z
 residuals(z)
 ```
-H0: Meidicines work equally well againts nausea
+
+H0: Medicines work equally well against nausea
 Ha: Medicines do not work equally well.
-The p-value of the chi-squared test is 0.069, which is above 0.05. Therefore, there is no significant difference between the different medicines on the incidences of nausea.So, they all work equally well. H0 cannot be rejected.
+The p-value of the chi-squared test is 0.036, which is below 0.05. Therefore, there is a significant difference between the different medicines on the incidences of nausea.So, one or more of them works better than the other. H0 can be rejected.
 
-The medicine Placebo and Dimenhydrinate both have relatively more incidences of nausea (highest number) than expected. chlorpromazine has relatively lower incidences of nausea (lowest number). 
+The medicine Pentobarbital(100mg) has relatively more incidences of nausea (highest number) than expected. chlorpromazine has relatively lower incidences of nausea (lowest number). 
 
-chlorpromazine has the biggest difference --> most inconsistent
-
-The observed values of Pentobarbital(150mg) and Pentobarbital(100mg) are approximately in line with the expected values.
+The observed value of Pentobarbital(150mg) is approximately in line with the expected value.
 
 The numbers represent the differences between observed and expected divided by the square root of expected. high number means observed relatively more incidences of nausea than expected under H0, while a low number indicates relatively less of incidences of nausea than expected under H0.
 
@@ -57,41 +56,68 @@ The numbers represent the differences between observed and expected divided by t
 Permutation test
 
 ```{r}
-#Create dataframe with two columns. Col 1: incidence of nausea. Col 2: the medicine
-medicine = c("Placebo","Chlorpromazine","Dimenhydrinate","Pentobarbital(100mg)","Pentobarbital(150mg)")
-nausea = c(85/175, 67/137, 45/92, 34/68, 40/82)
-df = data.frame(medicine, nausea)
-df$medicine = as.factor(df$medicine)
+#Creating a datframe with boolean value whether a experimental subject experienced nausea (TRUE) or not (FALSE)
+# n1 <- 100
+# v1 <- rep(FALSE, n1)
+# n2 <- 52
+# v2 <- rep(TRUE, n2)
+# n3 <- 32
+# v3 <- rep(FALSE, n3)
+# n4 <- 35
+# v4 <- rep(TRUE, n4)
+# n5 <- 48
+# v5 <- rep(FALSE, n5)
+# n6 <- 37
+# v6 <- rep(TRUE, n6)
+
+n1 <- 100
+v1 <- rep(0, n1)
+n2 <- 52
+v2 <- rep(1, n2)
+n3 <- 32
+v3 <- rep(0, n3)
+n4 <- 35
+v4 <- rep(1, n4)
+n5 <- 48
+v5 <- rep(0, n5)
+n6 <- 37
+v6 <- rep(1, n6)
+
+med1 <- 152
+name1<- rep("Chlorpromazine", med1)
+med2 <- 67
+name2 <- rep("Pentobarbital(100mg)", med2)
+med3 <- 85
+name3 <- rep("Pentobarbital(150mg)", med3)
+
+
+medicine = list(c(name1, name2, name3))
+value = list(c(v1, v2, v3, v4, v5, v6))
+
+df <- data.frame(medicine, value)
+colnames(df) <- c("medicine", "nausea")
+df$medicine <- as.factor(df$medicine)
 df
-```
-```{r}
+
 boxplot(nausea~medicine, data=df)
 attach(df)
-mystat = function(x) sum(residuals(x)^2)
+mystat = function(x) chisq.test(residuals(x)^2)
 B=1000
 t_star = numeric(B)
 for (i in 1:B){
-  medicine_star=sample(medicine)
-  t_star[i]= mystat(lm(nausea~medicine_star))
+  medicine_star=sample(df$medicine)
+  t_star[i]= mystat(lm(df$nausea~medicine_star))
 }
 
-myt=mystat(lm(nausea~medicine))
+myt=mystat(lm(df$nausea~df$medicine))
 myt
 hist(t_star)
 
-# permutationFunction <- function(y=df$nausea, x=df$medicine){
-#   model.resample = lm(sample(y, replace = F)~x)
-#   fstats = summary(model.resample)$fstat[1]
-#   return(fstats)
-# }
-# 
-# permutationFunction()
-# for (i in 1:N){
-#   fstats[i] <- permutationFunction()
-# }
-
+pl = sum(t_star<myt)/B
+pr = sum(t_star>myt)/B
+2*min(pl,pr)
 ```
-
+The p-value of the permutation test is 0.068 which is above 0.05 and therefor the difference between the different medicines is not significant. 
 
 
 
