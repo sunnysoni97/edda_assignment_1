@@ -137,6 +137,15 @@ confint(model1)
 
 **#What are the estimated longevities for the three groups, for flies with the minimal and maximal thorax lengths?**
 
+```{r}
+flieshigh = fliesframe[which(fliesframe$activity=="high"),]
+
+fliesisolated = fliesframe[which(fliesframe$activity=="isolated"),]
+
+flieslow = fliesframe[which(fliesframe$activity=="low"),]
+
+```
+
 **Flies with high sexual activity -**
 
 ```{r}
