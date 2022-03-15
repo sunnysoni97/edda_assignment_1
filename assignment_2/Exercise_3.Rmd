@@ -198,7 +198,7 @@ summary(model2)
 anova(model0, model2) #pvalue = 1.753e-08 which means that there is a stat signif difference between the two models. Which can be explained by the fact that thorax is statistic signi in one model and not in the other. 
 ```
 
-The thorax
+sexual activity does influences longevity, however when taking the thorax into consideration as a explanatory variable this does not make a stat significant different on the longevity, pvalue = 0.1536.
 
 ```{r}
 #Question: Investigate graphically and see whether this dependence is similar under all three conditions of sexual activity.
