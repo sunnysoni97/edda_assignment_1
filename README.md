@@ -1,4 +1,4 @@
-#Experimental Design and Data Analysis - Assignment 1
+# Experimental Design and Data Analysis - Assignment 1
 
 Solution to Assignment 1 and 2, from the course of EDDA during year 2022.
 
